@@ -114,7 +114,10 @@ class Virus():
 
             self.baixo_sintomas()
 
+
         self.dia += 1
+
+        self.atualizar_status()
 
     def atribuir_sintomas(self)
         num_L = round(self.porcen_L * self.num_novos_infectados)
@@ -150,6 +153,24 @@ class Virus():
             self.L[recuperados_dia]["thetas"].append(L_theta)
             self.L[recuperados_dia]["rs"].append(L_r)
 
+    def atualizar_status(self):
+        if self.dia >= self.L_fast:
+            L_thetas = self.L[self.dia]["thetas"]
+            L_rs = self.L[self.dia]["rs"]
+            self.axes.scatter(L_thetas, L_rs, s=5, color=GREEN)
+            self.num_atualmente_infectados -= len(L_thetas)
+        if self.dia >= self.G_fast:
+            rec_thetas = self.G["recuperados"][self.dia]["thetas"]
+            rec_rs = self.G["recuperados"][self.dia]["rs"]
+            self.axes.scatter(rec_thetas, rec_rs, s=5, color=GREEN)
+            self.num_recuperados += len(rec_thetas)
+            self.num_atualmente_infectados -= len(rec_thetas)
+        if self.dia >= self.mortes_fast:
+            mortes_thetas = self.G["mortes"][self.dia]["thetas"]
+            mortes_rs = self.G["mortes"][self.dia]["rs"]
+            self.axes.scatter(mortes_thetas, mortes_rs, s=5, color=BLACK)
+            self.num_mortos += len(mortes_thetas)
+            self.num_atualmente_infectados -= len(mortes_thetas)
 
 #Virus(COVID19_PARAMS)
 #plt.show()
