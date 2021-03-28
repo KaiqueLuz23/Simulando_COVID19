@@ -111,15 +111,48 @@ class Virus():
             )
             thetas = [self.thetas[i] for i in self.novos_infectados_indices]
             rs = [self.rs[i] for i in self.novos_infectados_indices]
-
+            self.anim.event_source_stop()
+            if len(self.novos_infectados_indices) > 24:
+                size_list = round(len(self.novos_infectados_indices) / 24)
+                thetas_chunks = list(self.chunks(thetas, size_list))
+                r_chunks = list(self.chunks(rs, size_list))
+                self.anim2 = ani.FuncAnimation(
+                    self.fig,
+                    self.one_by_one,
+                    interval=50,
+                    frames=len(thetas_chunks),
+                    fargs=(thetas_chunks,r_chunks,RED)
+                )
+            else:
+                self.anim2 = ani.FuncAnimation(
+                    self.fig,
+                    self.one_by_one,
+                    interval=50,
+                    frames=len(thetas),
+                    fargs=(thetas, rs, RED)
+                )
             self.baixo_sintomas()
 
 
         self.dia += 1
 
         self.atualizar_status()
+        self.atualizar_text()
 
-    def atribuir_sintomas(self)
+    def one_by_one(self, i, thetas, rs, color):
+        self.axes.scatter(thetas[i],rs[i], s=5, color=color)
+        if i == (len(thetas) - 1):
+            self.anim2.event_source.stop()
+            self.anim.event_source_start()
+
+    def chunks(self, a_list, n):
+        for i in range(0, len(a_list), n):
+            yield a_list[i:i + n]
+
+
+
+
+    def atribuir_sintomas(self):
         num_L = round(self.porcen_L * self.num_novos_infectados)
         num_G = round(self.porcen_G * self.num_novos_infectados)
         # escolha um subconjunto aleatório de recém-infectados para ter sintomas leves
@@ -128,7 +161,7 @@ class Virus():
         )
         # atribuir ao restante sintomas graves, resultando em recuperação ou morte
         remanescente_indices = [
-            i for in self.novos_infectados_indices if i not in self.L_indice
+            i for i in self.novos_infectados_indices if i not in self.L_indice
         ]
         porcen_G_recuperados = 1 - (self.indice_F / self.porcen_G)
         num_G_recuparedos = round(porcen_G_recuperados * num_G)
@@ -171,6 +204,40 @@ class Virus():
             self.axes.scatter(mortes_thetas, mortes_rs, s=5, color=BLACK)
             self.num_mortos += len(mortes_thetas)
             self.num_atualmente_infectados -= len(mortes_thetas)
+
+
+    def atualizar_text(self):
+        self.dia_text.set_text("Dia {}".format(self.dia))
+        self.infectados_tex.set_text("Infectados: {}".format(self.num_atualmente_infectados))
+        self.mortos_text.set_text("\nMortos: {}".format(self.num_mortos))
+        self.recuperados_text.set_text("\n\nRecuperados: {}".format(self.num_recuperados))
+
+
+
+    # Animando o vírus se espalhando com "Matplotlib"
+
+    def gen(self):
+        while self.num_mortos + self.num_recuperados < self.total_num_infectados:
+            yield
+
+
+    def animate(self):
+        self.anim = ani.FuncAnimation(
+            self.fig,
+            self.propagar_virus,
+            frames= self.gen,
+            repeat=True
+    )
+
+
+def main():
+    coronavirus = Virus(COVID19_PARAMS)
+    coronavirus.animate
+    plt.show()
+
+if __name__ == "__main__":
+    main()
+
 
 #Virus(COVID19_PARAMS)
 #plt.show()
