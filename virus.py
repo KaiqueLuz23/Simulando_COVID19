@@ -49,7 +49,7 @@ class Virus():
         )
 
         # criando variáveis de membros
-        self.day = 0
+        self.dia = 0
         self.total_num_infectados = 0
         self.num_atualmente_infectados = 0
         self.num_recuperados = 0
@@ -92,5 +92,64 @@ class Virus():
         self.L[self.L_fast]["rs"].append(self.rs[0])
 
 
-Virus(COVID19_PARAMS)
-plt.show()
+    def propagar_vírus(self, i):
+        self.exposto_antes = self.exposto_depois
+        if self.dia % self.intervalo_serial == 0 and self.exposto_antes < 4500:
+            self.num_novos_infectados = round(self.r0 * self.total_num_infectados)
+            self.exposto_depois += round(self.num_novos_infectados * 1.1)
+            if self.exposto_depois > 4500:
+                self.num_novos_infectados = round((4500 - self.exposto_antes) * 0.9)
+                self.exposto_depois = 4500
+            self.num_atualmente_infectados += self.num_novos_infectados
+            self.total_num_infectados += self.num_novos_infectados
+            self.novos_infectados_indices = list(
+                np.random.choice(
+                    range(self.exposto_antes, self.exposto_depois),
+                    self.num_novos_infectados,
+                    replace=False
+                )
+            )
+            thetas = [self.thetas[i] for i in self.novos_infectados_indices]
+            rs = [self.rs[i] for i in self.novos_infectados_indices]
+
+            self.baixo_sintomas()
+
+        self.dia += 1
+
+    def atribuir_sintomas(self)
+        num_L = round(self.porcen_L * self.num_novos_infectados)
+        num_G = round(self.porcen_G * self.num_novos_infectados)
+        # escolha um subconjunto aleatório de recém-infectados para ter sintomas leves
+        self.L_indice = np.random.choice(
+            self.novos_infectados_indices, num_L, replace=False
+        )
+        # atribuir ao restante sintomas graves, resultando em recuperação ou morte
+        remanescente_indices = [
+            i for in self.novos_infectados_indices if i not in self.L_indice
+        ]
+        porcen_G_recuperados = 1 - (self.indice_F / self.porcen_G)
+        num_G_recuparedos = round(porcen_G_recuperados * num_G)
+        self.G_indices = []
+        self.Mortes_indices = []
+        if remanescente_indices:
+            self.G_indices = np.random.choice(
+                remanescente_indices, num_G_recuparedos, replace=False
+            )
+            self.morte_indices = [
+                i for i in remanescente_indices if  i not  in self.G_indices
+            ]
+
+        # atribuir recuperação / dia da morte
+
+        baixo = self.dia + self.L_fast
+        alto = self.dia + self.L_slow
+        for L  in self.L_indice:
+            recuperados_dia = np.random.randint(baixo, alto)
+            L_theta = self.thetas[L]
+            L_r = self.rs[L]
+            self.L[recuperados_dia]["thetas"].append(L_theta)
+            self.L[recuperados_dia]["rs"].append(L_r)
+
+
+#Virus(COVID19_PARAMS)
+#plt.show()
