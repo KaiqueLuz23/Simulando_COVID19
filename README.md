@@ -1,1 +1,0 @@
-# Simulando_COVID19
